@@ -1,0 +1,59 @@
+---
+- name: Validate Node Autoscaling (Simple)
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  vars:
+    node_name: "{{ node_name }}"
+
+  tasks:
+  - name: Create CPU-intensive deployment for autoscaling trigger
+    kubernetes.core.k8s:
+      api_key: "{{ access_token }}"
+      host: "https://api.cus-infra8.qq08.p3.openshiftapps.com:443"
+      definition:
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: "cpu-stress"
+          namespace: "cpu-stress"
+          labels:
+            app: autoscaling-load-test
+        spec:
+          replicas: 30
+          selector:
+            matchLabels:
+              app: autoscaling-load-test
+          template:
+            metadata:
+              labels:
+                app: autoscaling-load-test    
+            spec:
+              containers:
+                - name: cpu-stress
+                  image: busybox:latest
+                  command: ["sh", "-c"]
+                  args:
+                    - |
+                      echo "Starting CPU stress test"
+                      while true; do
+                        echo "CPU stress iteration $(date)"
+                        for i in $(seq 1 4); do
+                          dd if=/dev/zero of=/dev/null bs=1M count=100 &
+                        done
+                        wait
+                        sleep 10
+                      done
+                  resources:
+                    requests:
+                      cpu: "500m"
+                      memory: "512Mi"
+                    limits:
+                      cpu: "1000m"
+                      memory: "1Gi"
+              terminationGracePeriodSeconds: 30
+      wait: true
+      wait_condition:
+        type: Available
+        status: "True"
+      wait_timeout: 300
