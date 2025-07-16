@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "cpu-stress"
+  namespace: "cpu-stress"
+  labels:
+    app: autoscaling-load-test
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: autoscaling-load-test
+  template:
+    metadata:
+      labels:
+        app: autoscaling-load-test    
+    spec:
+      containers:
+        - name: cpu-stress
+          image: busybox:latest
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "Starting CPU stress test"
+              while true; do
+                echo "CPU stress iteration $(date)"
+                for i in $(seq 1 4); do
+                  dd if=/dev/zero of=/dev/null bs=1M count=100 &
+                done
+                wait
+                sleep 10
+              done
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+      terminationGracePeriodSeconds: 30
