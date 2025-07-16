@@ -20,7 +20,7 @@
           labels:
             app: autoscaling-load-test
         spec:
-          replicas: 30
+          replicas: 10
           selector:
             matchLabels:
               app: autoscaling-load-test
