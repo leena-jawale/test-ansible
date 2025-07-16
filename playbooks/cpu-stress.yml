@@ -10,7 +10,7 @@
   - name: Create CPU-intensive deployment for autoscaling trigger
     kubernetes.core.k8s:
       api_key: "{{ access_token }}"
-      host: "https://api.cus-infra8.qq08.p3.openshiftapps.com:443"
+      host: "{{ host }}"
       definition:
         apiVersion: apps/v1
         kind: Deployment
